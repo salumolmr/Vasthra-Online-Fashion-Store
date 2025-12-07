@@ -1,0 +1,341 @@
+/* ===== Global reset ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f2eb;
+  color: #3b2b22;
+}
+
+/* ===== Layout helpers ===== */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
+}
+
+/* ===== Navbar ===== */
+nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #8B4513;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 40px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+}
+
+nav h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 2.2rem;
+  letter-spacing: 2px;
+  color: #F2C94C;
+}
+
+nav > div a,
+nav > div span {
+  margin-left: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  position: relative;
+}
+
+nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background: #F2C94C;
+  transition: width 0.2s ease;
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  background: linear-gradient(135deg, #D4A017, #ffcc40);
+  color: #3b2b22;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* ===== Hero (home page) ===== */
+.hero {
+  height: 75vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(120deg, rgba(139,69,19,0.88), rgba(212,160,23,0.85)),
+    url("images/hero-bg.jpg") center/cover no-repeat;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.hero h1 {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(3rem, 5vw, 4.5rem);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  margin-bottom: 28px;
+  opacity: 0.92;
+}
+
+/* ===== Grid & cards (shop, new arrivals, wishlist) ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+}
+
+.card img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.16);
+}
+
+.card h3 {
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+}
+
+/* wishlist heart on cards */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 999px;
+  border: none;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+}
+
+/* ===== Product detail page ===== */
+.product-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 40px;
+  margin-top: 80px;
+  align-items: start;
+}
+
+.product-detail img {
+  width: 100%;
+  border-radius: 22px;
+  box-shadow: 0 16px 36px rgba(0,0,0,0.18);
+}
+
+.product-detail h1 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+.product-detail p {
+  line-height: 1.5;
+}
+
+/* ===== Login & register ===== */
+.login-box {
+  max-width: 400px;
+  margin: 120px auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  font-size: 0.95rem;
+}
+
+/* generic input style (also used on checkout etc.) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"] {
+  font-family: inherit;
+}
+
+/* ===== Profile page ===== */
+.profile-container {
+  max-width: 1000px;
+  margin: 80px auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  gap: 18px;
+}
+
+.info-card {
+  background: #faf5ee;
+  padding: 16px 18px;
+  border-radius: 14px;
+}
+
+.info-card h3 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8B4513;
+  margin-bottom: 4px;
+}
+
+.info-card p {
+  font-weight: 600;
+}
+
+/* ===== Checkout ===== */
+.checkout-form {
+  max-width: 420px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 26px 24px 34px;
+  border-radius: 22px;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.11);
+}
+
+.checkout-form input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 2px solid #eee;
+}
+
+/* ===== Cart sidebar ===== */
+.cart-sidebar {
+  position: fixed;
+  top: 0;
+  right: -360px;
+  width: 340px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -8px 0 20px rgba(0,0,0,0.25);
+  padding: 20px;
+  z-index: 1100;
+  transition: right 0.25s ease;
+  overflow-y: auto;
+}
+
+.cart-sidebar.open {
+  right: 0;
+}
+
+/* you already create #cartOverlay in HTML when needed */
+#cartOverlay {
+  cursor: pointer;
+}
+
+/* ===== Misc ===== */
+h1, h2, h3 {
+  font-family: "Playfair Display", serif;
+}
+
+p {
+  font-size: 0.98rem;
+}
+
+/* small utility for hidden elements (used in admin sometimes) */
+.hidden {
+  display: none !important;
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 768px) {
+  nav {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+  }
+
+  nav > div {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .product-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    height: 60vh;
+  }
+}

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin - Vasthra</title>
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .tab-buttons button{margin:5px;padding:10px 20px;}
+    table{width:100%;border-collapse:collapse;margin-top:20px;}
+    th,td{border:1px solid #ddd;padding:12px;text-align:center;}
+    th{background:#f4f4f4;}
+    .edit{background:#27ae60;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;}
+    .del{background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;}
+    .approve{background:#27ae60;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;}
+    .pending{color:#e67e22;font-weight:bold;}
+    .delivered{color:#27ae60;font-weight:bold;}
+    .tab-content{margin-top:25px;}
+  </style>
+</head>
+<body>
+<nav>
+  <h1>Admin Panel</h1>
+  <button class="btn" onclick="auth.signOut().then(()=>location.href='./login.html')">Logout</button>
+</nav>
+
+<div class="container" style="margin-top:100px;">
+  <div class="tab-buttons">
+    <button class="btn" onclick="openTab('addTab')">Add Product</button>
+    <button class="btn" onclick="openTab('productsTab')">Products</button>
+    <button class="btn" onclick="openTab('ordersTab')">Orders</button>
+    <button class="btn" onclick="openTab('usersTab')">Users</button>
+  </div>
+
+  <!-- ADD PRODUCT -->
+  <div id="addTab" class="tab-content">
+    <h2>Add Product</h2>
+    <input id="pname" placeholder="Name"><br><br>
+    <input id="pprice" type="number" placeholder="Price"><br><br>
+
+    <!-- You will type only the file name here (e.g. saree1 or saree1.jpg).
+         The code will automatically use images/saree1.jpg -->
+    <input id="pimg" placeholder="Image file name (e.g. saree1 or saree1.jpg)"><br><br>
+
+    <input id="pdesc" placeholder="Description"><br><br>
+    <button class="btn" onclick="addProduct()">Add Product</button>
+  </div>
+
+  <!-- PRODUCTS LIST -->
+  <div id="productsTab" class="tab-content" style="display:none;">
+    <h2>All Products</h2>
+    <table id="prodTable">
+      <thead>
+        <tr><th>Name</th><th>Price</th><th>Img</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ORDERS LIST -->
+  <div id="ordersTab" class="tab-content" style="display:none;">
+    <h2>Orders</h2>
+    <table id="orderTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>User</th><th>Total</th>
+          <th>Status</th><th>Details</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- USERS LIST / VERIFICATION -->
+  <div id="usersTab" class="tab-content" style="display:none;">
+    <h2>Users</h2>
+    <table id="usersTable">
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Phone</th><th>Verified</th><th>Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="./firebase.js"></script>
+
+<script>
+// Only allow admin
+auth.onAuthStateChanged(u => {
+  if (!u || u.email !== "admin@vasthra.com") {
+    location.href = "./login.html";
+  } else {
+    loadProducts();
+    loadOrders();
+    loadUsers();
+  }
+});
+
+// ---------- TABS ----------
+function openTab(id){
+  ["addTab","productsTab","ordersTab","usersTab"].forEach(t=>{
+    document.getElementById(t).style.display = (t===id) ? "block" : "none";
+  });
+}
+
+// ---------- PRODUCTS ----------
+function addProduct() {
+  const name     = document.getElementById('pname').value.trim();
+  const price    = +document.getElementById('pprice').value;
+  const imgInput = document.getElementById('pimg').value.trim();
+  const desc     = document.getElementById('pdesc').value.trim();
+
+  if (!name || !price || !imgInput) {
+    alert("Please fill product name, price and image file name");
+    return;
+  }
+
+  // All your images are in the /images/ folder and .jpg by default.
+  // So user can type "saree1" or "saree1.jpg"
+  let fileName = imgInput;
+  if (!fileName.toLowerCase().endsWith(".jpg")) {
+    fileName += ".jpg";   // auto-add .jpg if missing
+  }
+
+  const data = {
+    name : name,
+    price: price,
+    image: "images/" + fileName,  // final path used everywhere
+    desc : desc
+  };
+
+  db.collection("products").add(data).then(() => {
+    alert("Product added");
+
+    // clear fields
+    document.getElementById('pname').value = "";
+    document.getElementById('pprice').value = "";
+    document.getElementById('pimg').value = "";
+    document.getElementById('pdesc').value = "";
+
+    openTab('productsTab');
+  }).catch(e => alert(e.message));
+}
+
+function loadProducts(){
+  db.collection("products").orderBy("name").onSnapshot(snap=>{
+    let html = "";
+    snap.forEach(doc=>{
+      const p = doc.data();
+      html += `
+        <tr>
+          <td>${p.name}</td>
+          <td>₹${p.price}</td>
+          <td><img src="${p.image}" width="50"></td>
+          <td>
+            <button class="edit" onclick="editProduct('${doc.id}')">Edit</button>
+            <button class="del" onclick="deleteProduct('${doc.id}')">Delete</button>
+          </td>
+        </tr>`;
+    });
+    document.querySelector("#prodTable tbody").innerHTML =
+      html || "<tr><td colspan='4'>No products</td></tr>";
+  });
+}
+
+function editProduct(id){
+  db.collection("products").doc(id).get().then(doc=>{
+    if(!doc.exists) return;
+    const p = doc.data();
+    const name  = prompt("Product name:",  p.name);
+    if(name === null) return;
+    const price = prompt("Price:", p.price);
+    if(price === null) return;
+
+    // remove images/ and .jpg so user edits just base name if they want
+    const currentFile = (p.image || "").replace(/^images\//, "");
+    const img   = prompt("Image file name (e.g. saree1 or saree1.jpg):", currentFile);
+    if(img === null) return;
+
+    const desc  = prompt("Description:", p.desc || "");
+
+    let fileName = img.trim();
+    if (!fileName.toLowerCase().endsWith(".jpg")) {
+      fileName += ".jpg";
+    }
+
+    db.collection("products").doc(id).update({
+      name : name.trim(),
+      price: +price,
+      image: "images/" + fileName,
+      desc : (desc || "").trim()
+    });
+  });
+}
+
+function deleteProduct(id){
+  if(confirm("Delete this product?")){
+    db.collection("products").doc(id).delete();
+  }
+}
+
+// ---------- ORDERS ----------
+function loadOrders(){
+  db.collection("orders").orderBy("timestamp","desc").onSnapshot(snap=>{
+    let html = "";
+    snap.forEach(o=>{
+      const d = o.data();
+      const status = d.status || "Pending";
+      const statusClass = status === "Delivered" ? "delivered" : "pending";
+      const itemsText = (d.items || []).map(i=>`${i.name} × ${i.qty}`).join("<br>");
+      const address = d.shipping ? `${d.shipping.name}<br>${d.shipping.addr}<br>${d.shipping.phone}` : "";
+      html += `
+        <tr>
+          <td>${o.id.slice(0,8)}</td>
+          <td>${d.userEmail}</td>
+          <td>₹${d.total}</td>
+          <td>
+            <select onchange="updateOrderStatus('${o.id}', this.value)">
+              <option ${status==='Pending'?'selected':''}>Pending</option>
+              <option ${status==='Approved'?'selected':''}>Approved</option>
+              <option ${status==='Shipped'?'selected':''}>Shipped</option>
+              <option ${status==='Delivered'?'selected':''}>Delivered</option>
+              <option ${status==='Cancelled'?'selected':''}>Cancelled</option>
+            </select>
+          </td>
+          <td style="text-align:left;font-size:0.9rem;">
+            <strong>Items:</strong><br>${itemsText || '—'}<br><br>
+            <strong>Ship To:</strong><br>${address || '—'}
+          </td>
+          <td>
+            <span class="${statusClass}">
+              ${d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString('en-IN') : ''}
+            </span>
+          </td>
+        </tr>`;
+    });
+    document.querySelector("#orderTable tbody").innerHTML =
+      html || "<tr><td colspan='6'>No orders</td></tr>";
+  });
+}
+
+function updateOrderStatus(id, status){
+  db.collection("orders").doc(id).update({status});
+}
+
+// ---------- USERS / VERIFICATION ----------
+function loadUsers(){
+  db.collection("users").orderBy("createdAt","desc").onSnapshot(snap=>{
+    let html = "";
+    snap.forEach(u=>{
+      const d = u.data();
+      const verified = d.verified === true;
+      html += `
+        <tr>
+          <td>${d.name || 'Customer'}</td>
+          <td>${d.email}</td>
+          <td>${d.phone || '-'}</td>
+          <td>${verified ? 'Yes' : 'No'}</td>
+          <td>
+            <button class="approve" onclick="toggleVerify('${u.id}', ${verified})">
+              ${verified ? 'Unverify' : 'Verify'}
+            </button>
+          </td>
+        </tr>`;
+    });
+    document.querySelector("#usersTable tbody").innerHTML =
+      html || "<tr><td colspan='5'>No users</td></tr>";
+  });
+}
+
+function toggleVerify(id, current){
+  db.collection("users").doc(id).update({verified: !current});
+}
+</script>
+</body>
+</html>

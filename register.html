@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Vasthra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .register-box {
+      max-width: 450px;
+      margin: 120px auto;
+      background: white;
+      padding: 50px;
+      border-radius: 25px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    .register-box h1 {
+      font-family: 'Playfair Display', serif;
+      color: #8B4513;
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+    .register-box p { color: #777; margin-bottom: 30px; }
+    input {
+      width: 100%;
+      padding: 18px;
+      margin: 12px 0;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      box-sizing: border-box;
+    }
+    .btn-register {
+      background: #D4A017;
+      color: white;
+      padding: 18px;
+      width: 100%;
+      font-size: 1.2rem;
+      margin-top: 20px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    #error { color: red; margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Vasthra</h1>
+    <div>
+      <a href="index.html">Home</a>
+      <a href="login.html">Login</a>
+    </div>
+  </nav>
+
+  <div class="register-box">
+    <h1>Vasthra</h1>
+    <p>Create your account to start shopping</p>
+
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email Address" required>
+    <input type="tel" id="phone" placeholder="Phone Number (+91)" required>
+    <input type="password" id="pass" placeholder="Password (min 6 chars)" required>
+
+    <button class="btn btn-register" onclick="registerUser()">Create Account</button>
+
+    <p id="error"></p>
+    <p style="margin-top:20px;">
+      Already have account? <a href="login.html" style="color:#D4A017; font-weight:600;">Login here</a>
+    </p>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    // Show loading/error messages
+    const errorMsg = document.getElementById("error");
+
+    function registerUser() {
+      // Get form values
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const password = document.getElementById("pass").value;
+
+      // Validation
+      if (!name || !email || !phone || !password) {
+        errorMsg.textContent = "Please fill all fields";
+        return;
+      }
+
+      if (password.length < 6) {
+        errorMsg.textContent = "Password must be at least 6 characters";
+        return;
+      }
+
+      // Show loading
+      errorMsg.textContent = "Creating account...";
+      const registerBtn = document.querySelector(".btn-register");
+      registerBtn.textContent = "Creating...";
+      registerBtn.disabled = true;
+
+      // Create user with Firebase
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          // User created successfully
+          const user = userCredential.user;
+
+          // Save user data to Firestore
+          return db.collection("users").doc(user.uid).set({
+            name: name,
+            email: email,
+            phone: phone,
+            role: "customer",
+            verified: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .then(() => {
+          // Success! Redirect to login
+          alert("Account created successfully! Please login.");
+          location.href = "login.html";
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error("Registration error:", error);
+          
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMsg.textContent = "Email already registered. Please login.";
+              break;
+            case 'auth/invalid-email':
+              errorMsg.textContent = "Invalid email address";
+              break;
+            case 'auth/weak-password':
+              errorMsg.textContent = "Password too weak (minimum 6 characters)";
+              break;
+            default:
+              errorMsg.textContent = "Registration failed: " + error.message;
+          }
+        })
+        .finally(() => {
+          // Reset button
+          registerBtn.textContent = "Create Account";
+          registerBtn.disabled = false;
+        });
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        registerUser();
+      }
+    });
+  </script>
+</body>
+</html>

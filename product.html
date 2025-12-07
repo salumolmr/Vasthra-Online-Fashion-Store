@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Product - Vasthra</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav><h1>Vasthra</h1><div><a href="shop.html">Back to Shop</a></div></nav>
+
+<div class="product-detail container">
+  <div><img id="img" src="" alt=""></div>
+  <div>
+    <h1 id="name"></h1>
+    <p id="price" style="font-size:2rem;color:#8B4513;"></p>
+    <p id="desc"></p>
+    <button class="btn" onclick="addToCart(prod.id,prod.name,prod.price)" style="width:100%;margin-top:20px;">Add to Cart</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="script.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+let prod = {};
+
+db.collection("products").doc(id).get().then(d => {
+  if (!d.exists) {
+    alert("Not found");
+    location.href = "shop.html";
+    return;
+  }
+
+  prod = d.data();
+  prod.id = d.id;
+
+  // 🔹 Fix image path
+  let imgPath = prod.image || "";
+  if (imgPath && !imgPath.startsWith("http") && !imgPath.startsWith("images/")) {
+    imgPath = "images/" + imgPath;
+  }
+
+  document.getElementById("name").textContent = prod.name;
+  document.getElementById("img").src = imgPath;
+  document.getElementById("price").textContent = `₹${prod.price}`;
+  document.getElementById("desc").textContent = prod.desc || "No description.";
+});
+</script>
+</body>
+</html>

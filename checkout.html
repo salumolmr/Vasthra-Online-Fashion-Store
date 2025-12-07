@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Checkout - Vasthra</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+<nav><h1>Vasthra</h1><div><a href="shop.html">Shop</a></div></nav>
+
+<div class="container">
+  <h1 style="text-align:center;margin:100px 0 30px;color:#8B4513;">Checkout</h1>
+  <div class="checkout-form">
+    <h2>Shipping</h2>
+    <input type="text" id="sname" placeholder="Full Name" required><br><br>
+    <input type="text" id="addr" placeholder="Street Address" required><br><br>
+    <input type="text" id="city" placeholder="City" required><br><br>
+    <input type="text" id="pin" placeholder="PIN" required><br><br>
+    <input type="tel" id="phone" placeholder="Phone" required><br><br>
+
+    <h2 style="margin-top:30px;">Payment</h2>
+    <div id="card-element" style="border:2px solid #eee;padding:14px;border-radius:12px;"></div>
+    <div id="card-errors" style="color:red;margin-top:10px;"></div>
+
+    <button class="btn" id="payBtn" style="width:100%;margin-top:20px;">Pay Now</button>
+  </div>
+
+  <div id="summary" style="margin-top:40px;background:#fff;padding:20px;border-radius:15px;"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="script.js"></script>
+<script>
+const stripe = Stripe('pk_test_YOUR_PUBLISHABLE_KEY');
+const elements = stripe.elements();
+const card = elements.create('card'); card.mount('#card-element');
+
+if(cart.length===0){alert("Cart empty");location.href="shop.html";}
+auth.onAuthStateChanged(u=>{if(!u)location.href="login.html";});
+
+function total(){return cart.reduce((s,i)=>s+i.price*i.qty,0);}
+document.getElementById("summary").innerHTML = `
+  <h3>Order Summary</h3>
+  ${cart.map(c=>`<p>${c.name} × ${c.qty} = ₹${c.price*c.qty}</p>`).join('')}
+  <strong>Total: ₹${total()}</strong>`;
+
+document.getElementById("payBtn").addEventListener("click",async()=>{
+  const name=document.getElementById("sname").value;
+  const addr=document.getElementById("addr").value+","+document.getElementById("city").value+","+document.getElementById("pin").value;
+  const phone=document.getElementById("phone").value;
+  if(!name||!addr||!phone) return alert("Fill all fields");
+
+  const {paymentMethod,error}=await stripe.createPaymentMethod('card',card);
+  if(error){document.getElementById("card-errors").textContent=error.message;return;}
+
+  const order={userId:auth.currentUser.uid,userEmail:auth.currentUser.email,
+               items:cart,total:total(),shipping:{name,addr,phone},
+               status:"Pending",timestamp:firebase.firestore.FieldValue.serverTimestamp()};
+
+  db.collection("orders").add(order).then(()=>{
+    localStorage.removeItem("vasthra_cart"); cart=[];
+    updateCounts(); alert("Order placed!"); location.href="profile.html";
+  }).catch(e=>alert(e.message));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Login - Vasthra</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<nav>
+  <h1>Vasthra</h1>
+  <div>
+    <a href="index.html">Home</a>
+    <a href="register.html">Register</a>
+  </div>
+</nav>
+
+<div class="login-box">
+  <h1 style="color:#8B4513;">Login</h1>
+
+  <input type="email" id="email" placeholder="Email" required><br><br>
+  <input type="password" id="password" placeholder="Password" required><br><br>
+
+  <button class="btn" onclick="login()">Login</button>
+
+  <p id="msg" style="color:red;margin-top:15px;"></p>
+
+  <p>New here? 
+    <a href="register.html" style="color:#D4A017;">Create Account</a>
+  </p>
+</div>
+
+<!-- Firebase scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+
+<!-- Corrected Login Script -->
+<script>
+function login() {
+  const email = document.getElementById("email").value.trim();
+  const pass  = document.getElementById("password").value;
+  const msgEl = document.getElementById("msg");
+
+  msgEl.textContent = "";  // clear old message
+
+  if (!email || !pass) {
+    msgEl.textContent = "Please enter email and password";
+    return;
+  }
+
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(cred => {
+
+      // If admin, redirect to admin panel
+      if (cred.user.email === "admin@vasthra.com") {
+        location.href = "admin.html";
+      } 
+      else {
+        // Normal customer → redirect to profile page
+        location.href = "profile.html";
+      }
+
+    })
+    .catch(error => {
+      msgEl.textContent = error.message;
+    });
+}
+
+// Allow Enter key to submit login
+document.addEventListener("keypress", function(e){
+  if(e.key === "Enter") login();
+});
+</script>
+
+</body>
+</html>

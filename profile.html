@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>My Profile - Vasthra</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>
+  <h1>Vasthra</h1>
+  <div>
+    <a href="index.html">Home</a><a href="shop.html">Shop</a>
+    <button class="btn" onclick="auth.signOut().then(()=>location.href='login.html')">Logout</button>
+  </div>
+</nav>
+
+<div class="profile-container">
+  <div style="background:linear-gradient(135deg,#8B4513,#D4A017);color:#fff;padding:50px;text-align:center;">
+    <h1 id="userName">Loading…</h1>
+  </div>
+  <div style="padding:40px;">
+    <div class="info-grid">
+      <div class="info-card"><h3>Email</h3><p id="userEmail"></p></div>
+      <div class="info-card"><h3>Phone</h3><p id="userPhone"></p></div>
+      <div class="info-card"><h3>Member Since</h3><p id="joinDate"></p></div>
+      <div class="info-card"><h3>Total Orders</h3><p id="totalOrders">0</p></div>
+    </div>
+
+    <h2 style="color:#8B4513;margin:30px 0 15px;">My Orders</h2>
+    <div id="ordersList" style="text-align:center;color:#777;">Loading…</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script src="script.js"></script>
+<script>
+auth.onAuthStateChanged(u=>{if(!u)location.href="login.html"; else loadUser(u);});
+function loadUser(u){
+  db.collection("users").doc(u.uid).get().then(d=>{
+    const data=d.data();
+    document.getElementById("userName").textContent=data.name||"Customer";
+    document.getElementById("userEmail").textContent=u.email;
+    document.getElementById("userPhone").textContent=data.phone||"Not added";
+    document.getElementById("joinDate").textContent=new Date(u.metadata.creationTime).toLocaleDateString('en-IN');
+  });
+  db.collection("orders").where("userId","==",u.uid).orderBy("timestamp","desc").onSnapshot(s=>{
+    let html="",cnt=0;
+    s.forEach(o=>{
+      cnt++;
+      const d=o.data();
+      const status=d.status||"Processing";
+      const cls=status==="Delivered"?"delivered":"pending";
+      html+=`<div style="background:#f9f9f9;padding:20px;margin:15px 0;border-radius:12px;display:flex;justify-content:space-between;">
+        <div><strong>Order #${o.id.slice(0,8)}</strong><br>
+          ${d.items.map(i=>`${i.name} × ${i.qty}`).join("<br>")}
+          <br><strong>Total: ₹${d.total}</strong></div>
+        <div><span class="${cls}" style="font-weight:bold;">${status}</span><br>
+          <small>${new Date(d.timestamp.toDate()).toLocaleString('en-IN')}</small></div>
+      </div>`;
+    });
+    document.getElementById("ordersList").innerHTML=html||"<p>No orders yet. <a href='shop.html'>Shop now!</a></p>";
+    document.getElementById("totalOrders").textContent=cnt;
+  });
+}
+</script>
+</body>
+</html>
